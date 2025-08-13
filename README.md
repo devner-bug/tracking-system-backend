@@ -76,7 +76,7 @@ mvn test
 
 ---
 
-## ️ Database Configuration
+## ️Database Configuration
 
 - H2 Console:
 
