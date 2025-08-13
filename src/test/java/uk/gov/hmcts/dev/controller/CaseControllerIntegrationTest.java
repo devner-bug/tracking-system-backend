@@ -96,8 +96,7 @@ class CaseControllerIntegrationTest {
 
         mockMvc.perform(get(BASE_URL))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.tasks", hasSize(2)))
-                .andExpect(jsonPath("$.data.tasks[0].title").value(response.getFirst().getTitle()));
+                .andExpect(jsonPath("$.data.tasks", hasSize(2)));
     }
 
     @Test

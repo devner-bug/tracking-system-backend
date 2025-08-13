@@ -9,6 +9,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import uk.gov.hmcts.dev.dto.CaseRequest;
 import uk.gov.hmcts.dev.dto.CaseResponse;
@@ -124,7 +125,7 @@ class CaseServiceTest {
         when(caseMapper.pageToCasesResponse(mockPage)).thenReturn(List.of(outputCase, outputCase2, outputCase3));
 
         // When
-        var result = caseService.getCase(SearchCriteria.builder().page(0).limit(10).build());
+        var result = caseService.getCase(SearchCriteria.builder().page(0).limit(10).sortBy("createdAt").sortOrder(Sort.Direction.DESC).build());
 
         // Then
         assertEquals(3, result.getTasks().size());
