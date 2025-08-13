@@ -1,75 +1,137 @@
-# tracking-system
-This is a task management app built for the HMCTS DTS Developer Challenge. It helps caseworkers stay on top of their daily tasks with a simple, easy-to-use interface and a reliable backend that keeps everything running smoothly.
+ # Tracking System
 
-Backend Documentation (Spring Boot with H2)
-Repository: https://github.com/uumeevuruo/tracking-system-backend
+A task management app built for the **HMCTS DTS Developer Challenge**. Helps caseworkers manage daily tasks with a simple interface and reliable backend.
 
-Features
-REST API for case management (CRUD operations)
+---
 
-H2 in-memory database (auto-creates tables via JPA)
+## Table of Contents
 
-Data validation and error handling
+- [Backend Features](#backend-features)
+- [Setup](#setup)
+- [API Documentation](#api-documentation)
+- [Database Configuration](#database-configuration)
+- [Testing](#testing)
+- [Advanced Options](#advanced-options)
 
-Unit/Integration tests (85% coverage)
+---
 
-##Setup
-Requirements: Java 17+, Maven
+## Backend Features
 
-Run: mvn spring-boot:run
+- REST API for case management (CRUD operations)
+- H2 in-memory database (auto-creates tables via JPA)
+- Data validation and error handling
+- Unit/Integration tests (85% coverage)
 
-API: http://localhost:8081/api/v1/case
+---
 
-H2 Console: http://localhost:8081/h2-console
-(JDBC URL: jdbc:h2:mem:caseworkerTestDB, credentials in application.properties)
+## Setup
 
-##API Endpoints
-swagger: http://localhost:8081/swagger-ui/index.html
-Method	Endpoint	Description
-POST	/api/v1/case Create new case
-GET	/api/v1/case	List all cases
-GET	/api/v1/case/{id}	Get case by ID
-PUT	/api/v1/case/{id}	Update case
-DELETE	/api/v1/case/{id}	Delete case
+**Requirements:**
 
-##Testing
-Run: mvn test
+- Java 17+
+- Maven
 
-##Setup Options
-You can use your favourite database by editing the properties below in application.properties
-# application.properties using Postgres DB
+**Run the application:**
+
+```bash
+mvn spring-boot:run
+```
+
+**Access Points:**
+
+- API:
+
+[`http://localhost:8081/api/v1/case`](http://localhost:8081/api/v1/case)
+- H2 Console:
+
+[`http://localhost:8081/h2-console`](http://localhost:8081/h2-console)  
+JDBC URL: `jdbc:h2:mem:caseworkerTestDB`  
+*(Credentials in `application.properties`)*
+
+---
+
+## API Documentation
+
+Swagger UI:
+
+[`http://localhost:8081/swagger-ui/index.html`](http://localhost:8081/swagger-ui/index.html)
+
+| Method \| Endpoint \| Description \|
+|--------\|-----------------------\|-------------------\|
+| POST   \| `/api/v1/case`        \| Create new case   \|
+| GET    \| `/api/v1/case`        \| List all cases    \|
+| GET    \| `/api/v1/case/{id}`   \| Get case by ID    \|
+| PUT    \| `/api/v1/case/{id}`   \| Update case       \|
+| DELETE \| `/api/v1/case/{id}`   \| Delete case       \|
+
+---
+
+## Testing
+
+Run all tests:
+
+```bash
+mvn test
+```
+
+---
+
+## Advanced Options
+
+###  Switch to PostgreSQL
+
+Update `application.properties`:
+
+```properties
 spring.datasource.url=jdbc:postgresql://localhost:5432/caseworkerTestDB
 spring.datasource.driver-class-name=org.postgresql.Driver
 spring.datasource.username=postgres
 spring.datasource.password=yourpassword
-spring.jpa.database-platform=org.hibernate.dialect.PostgreSQLDial
+spring.jpa.database-platform=org.hibernate.dialect.PostgreSQLDialect
+```
 
-Or by adding these properties using environment variable
+Or use environment variables:
+
+```bash
 export SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/caseworkerTestDB
 export SPRING_DATASOURCE_DRIVER=org.postgresql.Driver
 export SPRING_DATASOURCE_USERNAME=postgres
 export SPRING_DATASOURCE_PASSWORD=yourpassword
-export SPRING_DATABASE_PLATFORM=org.hibernate.dialect.PostgreSQLDial
+export SPRING_DATABASE_PLATFORM=org.hibernate.dialect.PostgreSQLDialect
+```
 
-To switch from H2 to PostgreSQL: Add PostgreSQL dependency below to pom.xml:
+Add PostgreSQL dependency to `pom.xml`:
+
+```xml
 <dependency>
-<groupId>org.postgresql</groupId>
-<artifactId>postgresql</artifactId>
+  <groupId>org.postgresql</groupId>
+  <artifactId>postgresql</artifactId>
 </dependency>
+```
 
-##H2 Console Access
-URL: http://localhost:8080/h2-console
+---
 
-Use JDBC URL: jdbc:h2:mem:caseworkerTestDB
-(Credentials match your .env/application.properties)
+## ️ Database Configuration
 
+- H2 Console:
 
-##Advanced Database Options
-Uncomment these for development/debugging:
-# Initialize database with data.sql
-spring.jpa.defer-datasource-initialization=true
+[`http://localhost:8081/h2-console`](http://localhost:8081/h2-console)
+- JDBC URL: `jdbc:h2:mem:caseworkerTestDB`  
+  *(Credentials match `.env` or `application.properties`)*
+
+---
+
+## Advanced Database Options
+
+Uncomment the following in `application.properties` for development/debugging:
+
+```properties
+
 # SQL Logging Configuration
 spring.jpa.show-sql=true
 spring.jpa.properties.hibernate.format_sql=true
 logging.level.org.hibernate.SQL=DEBUG
 logging.level.org.hibernate.type.descriptor.sql.BasicBinder=TRACE
+```
+
+---
