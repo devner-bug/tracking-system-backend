@@ -129,7 +129,7 @@ class CaseServiceTest {
 
         // Then
         assertEquals(3, result.getTasks().size());
-        assertEquals("Case 1", result.getTasks().getFirst().title());
+        assertEquals("Case 1", result.getTasks().get(0).title());
         assertEquals("Case 2", result.getTasks().get(1).title());
         assertEquals("Case 3", result.getTasks().get(2).title());
     }
