@@ -56,13 +56,13 @@ Swagger UI:
 
 [`http://localhost:8081/swagger-ui/index.html`](http://localhost:8081/swagger-ui/index.html)
 
-| Method \| Endpoint \| Description \|
-|--------\|-----------------------\|-------------------\|
-| POST   \| `/api/v1/case`        \| Create new case   \|
-| GET    \| `/api/v1/case`        \| List all cases    \|
-| GET    \| `/api/v1/case/{id}`   \| Get case by ID    \|
-| PUT    \| `/api/v1/case/{id}`   \| Update case       \|
-| DELETE \| `/api/v1/case/{id}`   \| Delete case       \|
+| Method | Endpoint | Description |
+|--------|-----------------------|-------------------|
+| POST   | `/api/v1/case`        | Create new case |
+| GET    | `/api/v1/case`       | List all cases |
+| GET    | `/api/v1/case/{id}` | Get case by ID  |
+| PUT    | `/api/v1/case/{id}` | Update case      |
+| DELETE | `/api/v1/case/{id}` | Delete case       |
 
 ---
 
@@ -75,6 +75,17 @@ mvn test
 ```
 
 ---
+
+## ️ Database Configuration
+
+- H2 Console:
+
+[`http://localhost:8081/h2-console`](http://localhost:8081/h2-console)
+- JDBC URL: `jdbc:h2:mem:caseworkerTestDB`  
+  *(Credentials match `.env` or `application.properties`)*
+
+---
+
 
 ## Advanced Options
 
@@ -100,29 +111,6 @@ export SPRING_DATASOURCE_PASSWORD=yourpassword
 export SPRING_DATABASE_PLATFORM=org.hibernate.dialect.PostgreSQLDialect
 ```
 
-Add PostgreSQL dependency to `pom.xml`:
-
-```xml
-<dependency>
-  <groupId>org.postgresql</groupId>
-  <artifactId>postgresql</artifactId>
-</dependency>
-```
-
----
-
-## ️ Database Configuration
-
-- H2 Console:
-
-[`http://localhost:8081/h2-console`](http://localhost:8081/h2-console)
-- JDBC URL: `jdbc:h2:mem:caseworkerTestDB`  
-  *(Credentials match `.env` or `application.properties`)*
-
----
-
-## Advanced Database Options
-
 Uncomment the following in `application.properties` for development/debugging:
 
 ```properties
@@ -134,4 +122,12 @@ logging.level.org.hibernate.SQL=DEBUG
 logging.level.org.hibernate.type.descriptor.sql.BasicBinder=TRACE
 ```
 
+Add PostgreSQL dependency to `pom.xml`:
+
+```xml
+<dependency>
+  <groupId>org.postgresql</groupId>
+  <artifactId>postgresql</artifactId>
+</dependency>
+```
 ---
