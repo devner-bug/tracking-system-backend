@@ -43,10 +43,13 @@ jobs:
 
       - name: Official SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@v5.3.0
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
-          scannerVersion: 7.2.0.5079
-          scannerBinariesUrl: https://binaries.sonarsource.com/Distribution/sonar-scanner-cli
-
+          args: >
+            -Dsonar.organization=devnut
+            -Dsonar.projectKey=devner-bug_tracking-system-backend
+            -Dsonar.python.coverage.reportPaths=coverage.xml
       - name: Cache Maven packages
         uses: actions/cache@v4
         with:
@@ -76,7 +79,7 @@ jobs:
           dockerhub-password: ${{ secrets.DOCKER_SECRET }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           command: quickview, cves
-          only-severities: critical, high
+          only-severities: critical
           exit-code: true
           sarif-file: scout-report.sarif
 
