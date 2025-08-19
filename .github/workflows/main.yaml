@@ -20,6 +20,8 @@ on:
 permissions:
   pull-requests: write
   issues: write
+  contents: read
+  packages: write
 
 jobs:
   build:
@@ -62,7 +64,7 @@ jobs:
 #          version: '24.0.9'
 
       - name: Build Docker Image
-        run: docker build . -t ghcr.io/${{github.actor}}/tracking-system-ghcr:latest
+        run: docker build . -t ghcr.io/${{github.actor}}/tracking-system-backend-ghcr:latest
 
       - name: Docker Scout Scan Image
         uses: docker/scout-action@v1.16.1
@@ -83,5 +85,5 @@ jobs:
           path: scout-report.sarif
 
       - name: Docker Push image
-        run: docker push ghcr.io/${{github.actor}}/tracking-system-ghcr:latest
+        run: docker push ghcr.io/${{github.actor}}/tracking-system-backend-ghcr:latest
 
