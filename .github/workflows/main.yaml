@@ -47,7 +47,7 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
           args: >
-            -Dsonar.organization=devnut
+            -Dsonar.organization=devner-bug
             -Dsonar.projectKey=devner-bug_tracking-system-backend
             -Dsonar.python.coverage.reportPaths=coverage.xml
       - name: Cache Maven packages
