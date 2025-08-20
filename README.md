@@ -122,7 +122,7 @@ logging.level.org.hibernate.SQL=DEBUG
 logging.level.org.hibernate.type.descriptor.sql.BasicBinder=TRACE
 ```
 
-Add PostgreSQL dependency to `pom.xml`:
+Add PostgreSQL dependency to `pom.xml` file:
 
 ```xml
 <dependency>
