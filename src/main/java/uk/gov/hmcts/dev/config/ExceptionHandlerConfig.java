@@ -19,7 +19,7 @@ import java.util.Map;
 public class ExceptionHandlerConfig {
     @ExceptionHandler(EntityNotFoundException.class)
     public ResponseEntity<ResponseData<ResponseError<String>>> handleEntityNotFoundExceptionHandler(EntityNotFoundException e){
-        return ResponseHandler.generateResponse(
+        return ResponseHandler.generateResponse(// NOSONAR
                 "Some field(s) failed validation",
                 HttpStatus.NOT_FOUND,
                 ResponseError.<String>builder()
@@ -30,7 +30,7 @@ public class ExceptionHandlerConfig {
 
     @ExceptionHandler(DuplicateException.class)
     public ResponseEntity<ResponseData<ResponseError<Map<String, String>>>> handleDuplicateExceptionHandler(DuplicateException e){
-        return ResponseHandler.generateResponse(
+        return ResponseHandler.generateResponse(// NOSONAR
                 "Entity already exists",
                 HttpStatus.CONFLICT,
                 ResponseError.<Map<String, String>>builder()
@@ -49,7 +49,7 @@ public class ExceptionHandlerConfig {
             errors.put(fieldName, errorMessage);
         });
 
-        return ResponseHandler.generateResponse(
+        return ResponseHandler.generateResponse(// NOSONAR
                 "Some field(s) failed validation",
                 HttpStatus.BAD_REQUEST,
                 ResponseError.<Map<String, String>>builder()
@@ -60,7 +60,7 @@ public class ExceptionHandlerConfig {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ResponseData<ResponseError<String>>> handleUnexpectedException(Exception e){
-        return ResponseHandler.generateResponse(
+        return ResponseHandler.generateResponse(// NOSONAR
                 "There was an issue with your case",
                 HttpStatus.INTERNAL_SERVER_ERROR,
                 ResponseError.<String>builder()
