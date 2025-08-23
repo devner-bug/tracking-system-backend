@@ -44,7 +44,7 @@ jobs:
         env:
           LANG: en_GB.UTF-8
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: mvn verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.host.url=https://sonarcloud.io -Dsonar.organization={{github.actor}} -Dsonar.projectKey={{secrets.SONAR_PROJECT_KEY}} -Dsonar.coverage.exclusions=**/dto/**,**/util/** -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
+        run: mvn verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.host.url=https://sonarcloud.io -Dsonar.organization=${{github.actor}} -Dsonar.projectKey=${{secrets.SONAR_PROJECT_KEY}} -Dsonar.coverage.exclusions=**/dto/**,**/util/** -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
       - name: Cache Maven packages
         uses: actions/cache@v4
         with:
