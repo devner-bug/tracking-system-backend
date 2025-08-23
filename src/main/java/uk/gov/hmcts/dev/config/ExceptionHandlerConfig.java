@@ -1,6 +1,7 @@
 package uk.gov.hmcts.dev.config;
 
 import jakarta.persistence.EntityNotFoundException;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -11,16 +12,20 @@ import uk.gov.hmcts.dev.dto.ResponseData;
 import uk.gov.hmcts.dev.dto.ResponseError;
 import uk.gov.hmcts.dev.dto.ResponseHandler;
 import uk.gov.hmcts.dev.exception.DuplicateException;
+import uk.gov.hmcts.dev.util.helper.ErrorHelper;
 
 import java.util.HashMap;
 import java.util.Map;
 
 @RestControllerAdvice
+@RequiredArgsConstructor
 public class ExceptionHandlerConfig {
+    private final ErrorHelper errorHelper;
+
     @ExceptionHandler(EntityNotFoundException.class)
     public ResponseEntity<ResponseData<ResponseError<String>>> handleEntityNotFoundExceptionHandler(EntityNotFoundException e){
         return ResponseHandler.generateResponse(// NOSONAR
-                "Some field(s) failed validation",
+                errorHelper.fieldValidationFailedError(),
                 HttpStatus.NOT_FOUND,
                 ResponseError.<String>builder()
                         .error(e.getMessage())
@@ -31,7 +36,7 @@ public class ExceptionHandlerConfig {
     @ExceptionHandler(DuplicateException.class)
     public ResponseEntity<ResponseData<ResponseError<Map<String, String>>>> handleDuplicateExceptionHandler(DuplicateException e){
         return ResponseHandler.generateResponse(// NOSONAR
-                "Entity already exists",
+                errorHelper.duplicateEntityError(),
                 HttpStatus.CONFLICT,
                 ResponseError.<Map<String, String>>builder()
                         .errors(Map.of(e.getField(), e.getMsg()))
@@ -50,7 +55,7 @@ public class ExceptionHandlerConfig {
         });
 
         return ResponseHandler.generateResponse(// NOSONAR
-                "Some field(s) failed validation",
+                errorHelper.fieldValidationFailedError(),
                 HttpStatus.BAD_REQUEST,
                 ResponseError.<Map<String, String>>builder()
                         .errors(errors)
@@ -61,10 +66,10 @@ public class ExceptionHandlerConfig {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ResponseData<ResponseError<String>>> handleUnexpectedException(Exception e){
         return ResponseHandler.generateResponse(// NOSONAR
-                "There was an issue with your case",
+                errorHelper.generalError(),
                 HttpStatus.INTERNAL_SERVER_ERROR,
                 ResponseError.<String>builder()
-                        .error("An unexpected error occurred")
+                        .error(errorHelper.unexpectedError())
                         .build()
         );
     }

@@ -11,6 +11,7 @@ import uk.gov.hmcts.dev.dto.CaseRequest;
 import uk.gov.hmcts.dev.dto.SearchCriteria;
 import uk.gov.hmcts.dev.dto.TaskResponseData;
 import uk.gov.hmcts.dev.exception.DuplicateException;
+import uk.gov.hmcts.dev.util.helper.ErrorHelper;
 import uk.gov.hmcts.dev.mapper.CaseMapper;
 import uk.gov.hmcts.dev.model.CaseStatus;
 import uk.gov.hmcts.dev.repository.CaseRepository;
@@ -24,6 +25,7 @@ import static java.util.Objects.nonNull;
 @RequiredArgsConstructor
 public class CaseService {
     private final CaseRepository caseRepository;
+    private final ErrorHelper errorHelper;
     private final CaseMapper mapper;
 
     @Transactional
@@ -40,7 +42,7 @@ public class CaseService {
         }
 
         if(caseRepository.existsByTitle(request.title())){
-            throw new DuplicateException("title", "Title already exists");
+            throw new DuplicateException("title", errorHelper.duplicateTitleError());
         }
 
         var response = caseRepository.save(mapper.toCase(request));
@@ -65,7 +67,7 @@ public class CaseService {
 
     public TaskResponseData getCase(UUID id){
         var response = caseRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Case not found"));
+                .orElseThrow(() -> new EntityNotFoundException(errorHelper.caseNotFoundError()));
 
         return TaskResponseData.builder()
                 .task(mapper.toCaseResponse(response))
@@ -75,7 +77,7 @@ public class CaseService {
     @Transactional
     public TaskResponseData updateCase(CaseRequest request){
         var response = caseRepository.findById(request.id())
-                .orElseThrow(() -> new EntityNotFoundException("Case not found"));
+                .orElseThrow(() -> new EntityNotFoundException(errorHelper.caseNotFoundError()));
 
         if(nonNull(request.title())){
             response.setTitle(request.title());
@@ -101,7 +103,7 @@ public class CaseService {
     @Transactional
     public void deleteCase(UUID id){
         var response = caseRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Case not found"));
+                .orElseThrow(() -> new EntityNotFoundException(errorHelper.caseNotFoundError()));
 
         response.setDeleted(true);
 

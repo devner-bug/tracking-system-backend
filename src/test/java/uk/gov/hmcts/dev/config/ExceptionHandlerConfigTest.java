@@ -1,6 +1,7 @@
 package uk.gov.hmcts.dev.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -10,6 +11,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import uk.gov.hmcts.dev.model.Case;
 import uk.gov.hmcts.dev.model.CaseStatus;
 import uk.gov.hmcts.dev.repository.CaseRepository;
+import uk.gov.hmcts.dev.util.helper.ErrorHelper;
+import uk.gov.hmcts.dev.util.helper.FieldHelper;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -26,14 +29,18 @@ class ExceptionHandlerConfigTest {
     private ObjectMapper objectMapper;
     @Autowired
     private CaseRepository caseRepository;
+    @Autowired
+    private FieldHelper fieldHelper;
+    @Autowired
+    private ErrorHelper errorHelper;
     private static final String BASE_URL = "/api/v1/case/";
 
     @Test
     void handleEntityNotFoundExceptionHandler() throws Exception {
-        mockMvc.perform(get(BASE_URL + "{id}", UUID.randomUUID())) // assuming this triggers the exception
+        mockMvc.perform(get(BASE_URL + "{id}", UUID.randomUUID()))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.status").value("NOT_FOUND"))
-                .andExpect(jsonPath("$.data.error").value("Case not found"));
+                .andExpect(jsonPath("$.data.error").value(errorHelper.caseNotFoundError()));
     }
 
     @Test
@@ -52,7 +59,7 @@ class ExceptionHandlerConfigTest {
                 ) // assuming this triggers the exception
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.status").value("CONFLICT"))
-                .andExpect(jsonPath("$.data.errors.title").value("Title already exists"));
+                .andExpect(jsonPath("$.data.errors.title").value(errorHelper.duplicateTitleError()));
     }
 
     @Test
@@ -61,12 +68,12 @@ class ExceptionHandlerConfigTest {
                         post(BASE_URL)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(new Case()))
-                ) // assuming this triggers the exception
+                )
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.status").value("BAD_REQUEST"))
-                .andExpect(jsonPath("$.data.errors.title").value("Title is required"))
-                .andExpect(jsonPath("$.data.errors.description").value("Description is required"))
-                .andExpect(jsonPath("$.data.errors.due").value("Due date is required"));
+                .andExpect(jsonPath("$.data.errors.title").value(fieldHelper.titleRequired()))
+                .andExpect(jsonPath("$.data.errors.description").value(fieldHelper.descriptionRequired()))
+                .andExpect(jsonPath("$.data.errors.due").value(fieldHelper.dueDateRequired()));
     }
 
     @Test
@@ -75,10 +82,10 @@ class ExceptionHandlerConfigTest {
                         put(BASE_URL)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(new Case()))
-                ) // assuming this triggers the exception
+                )
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.status").value("BAD_REQUEST"))
-                .andExpect(jsonPath("$.data.errors.id").value("Id is required"));
+                .andExpect(jsonPath("$.data.errors.id").value(fieldHelper.idRequired()));
     }
 
     @Test
@@ -89,6 +96,6 @@ class ExceptionHandlerConfigTest {
                 ) // assuming this triggers the exception
                 .andExpect(status().isInternalServerError())
                 .andExpect(jsonPath("$.status").value("INTERNAL_SERVER_ERROR"))
-                .andExpect(jsonPath("$.data.error").value("An unexpected error occurred"));
+                .andExpect(jsonPath("$.data.error").value(errorHelper.unexpectedError()));
     }
 }

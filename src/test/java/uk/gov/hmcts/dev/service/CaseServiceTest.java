@@ -20,6 +20,7 @@ import uk.gov.hmcts.dev.mapper.CaseMapper;
 import uk.gov.hmcts.dev.model.Case;
 import uk.gov.hmcts.dev.model.CaseStatus;
 import uk.gov.hmcts.dev.repository.CaseRepository;
+import uk.gov.hmcts.dev.util.helper.ErrorHelper;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -40,6 +41,9 @@ class CaseServiceTest {
 
     @Mock
     private CaseMapper caseMapper;
+
+    @Mock
+    private ErrorHelper errorHelper;
 
     @InjectMocks
     private CaseService caseService;
