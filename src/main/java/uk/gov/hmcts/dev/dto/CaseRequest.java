@@ -13,14 +13,14 @@ import java.util.UUID;
 
 @Builder
 public record CaseRequest(
-        @NotNull(groups = {ValidateUpdateGroup.class}, message = "Id is required")
+        @NotNull(groups = {ValidateUpdateGroup.class}, message = "{id.required}")
         UUID id,
-        @NotEmpty(message = "Title is required", groups = {ValidateCreateGroup.class})
+        @NotEmpty(message = "{title.required}", groups = {ValidateCreateGroup.class})
         String title,
-        @NotEmpty(message = "Description is required", groups = {ValidateCreateGroup.class})
+        @NotEmpty(message = "{description.required}", groups = {ValidateCreateGroup.class})
         String description,
         CaseStatus status,
-        @NotNull(message = "Due date is required", groups = {ValidateCreateGroup.class})
+        @NotNull(message = "{due.date.required}", groups = {ValidateCreateGroup.class})
         LocalDateTime due
 ) {
 }

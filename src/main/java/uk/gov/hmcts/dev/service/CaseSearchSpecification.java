@@ -18,7 +18,7 @@ public class CaseSearchSpecification {
       if (nonNull(keyword.title())) {
         predicates.add(
                 cb.like(
-                        cb.lower(root.get(Field.TITLE)),
+                        cb.lower(root.get(SqlColumn.TITLE)),
                         SqlConstant.SQL_WILDCARD +
                                 keyword.title().toLowerCase() +
                                 SqlConstant.SQL_WILDCARD
@@ -29,7 +29,7 @@ public class CaseSearchSpecification {
       if (nonNull(keyword.description())) {
         predicates.add(
                 cb.like(
-                        cb.lower(root.get(Field.DESCRIPTION)),
+                        cb.lower(root.get(SqlColumn.DESCRIPTION)),
                         SqlConstant.SQL_WILDCARD +
                                 keyword.description().toLowerCase() +
                                 SqlConstant.SQL_WILDCARD
@@ -40,7 +40,7 @@ public class CaseSearchSpecification {
       if(nonNull(keyword.status())){
         predicates.add(
                 cb.equal(
-                        root.get(Field.STATUS),
+                        root.get(SqlColumn.STATUS),
                         keyword.status()
                 )
         );
@@ -49,7 +49,7 @@ public class CaseSearchSpecification {
       if(nonNull(keyword.dueFrom()) && nonNull(keyword.dueTo())){
         predicates.add(
                 cb.between(
-                        root.get(Field.DUE),
+                        root.get(SqlColumn.DUE),
                         keyword.dueFrom(),
                         keyword.dueTo()
                 )
@@ -61,7 +61,7 @@ public class CaseSearchSpecification {
   }
 }
 
-interface Field{
+interface SqlColumn {
   String TITLE = "title";
   String DESCRIPTION = "description";
   String STATUS = "status";

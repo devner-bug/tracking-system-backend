@@ -4,7 +4,7 @@ kind: Deployment
 metadata:
   name: tracking-system
 spec:
-  replicas: 3
+  replicas: 2
   revisionHistoryLimit: 1
   selector:
     matchLabels:
@@ -21,10 +21,10 @@ spec:
         app: tracking-system
     spec:
       containers:
-        - image: ghcr.io/devner-bug/tracking-system-ghcr:latest
+        - image: ghcr.io/devner-bug/tracking-system-backend-ghcr:latest
           name: tracking-system
           ports:
-            - containerPort: 8092
+            - containerPort: 8081
           imagePullPolicy: Always
           resources:
             requests:
@@ -34,7 +34,7 @@ spec:
               memory: 2Gi
               cpu: 100m
       imagePullSecrets:
-        - name: dockerconfigjson-github-com
+        - name: dockerconfigjson-devner-github-com
 
 ---
 apiVersion: v1
@@ -43,8 +43,8 @@ metadata:
   name: tracking-system
 spec:
   ports:
-    - port: 8092
+    - port: 8081
       protocol: TCP
-      targetPort: 8092
+      targetPort: 8081
   selector:
     app: tracking-system
