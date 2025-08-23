@@ -39,8 +39,8 @@ class ExceptionHandlerConfigTest {
     @Test
     void handleDuplicateExceptionHandler() throws Exception {
         var request = new Case(
-                "Test title 1",
-                "Test description 1",
+                "Test title",
+                "Test description",
                 CaseStatus.IN_PROGRESS,
                 LocalDateTime.now().plusDays(180)
         );
