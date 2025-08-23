@@ -3,7 +3,6 @@ package uk.gov.hmcts.dev.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -14,7 +13,6 @@ import uk.gov.hmcts.dev.dto.CaseRequest;
 import uk.gov.hmcts.dev.model.Case;
 import uk.gov.hmcts.dev.model.CaseStatus;
 import uk.gov.hmcts.dev.repository.CaseRepository;
-import uk.gov.hmcts.dev.service.CaseService;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -38,9 +36,6 @@ class CaseControllerIntegrationTest {
 
     @Autowired
     private ObjectMapper objectMapper;
-
-    @Mock
-    private CaseService taskService;
 
     @Autowired
     private CaseRepository caseRepository;
@@ -82,7 +77,7 @@ class CaseControllerIntegrationTest {
     @Test
     public void shouldReturnAllCases() throws Exception {
         caseRepository.deleteAll();
-        var response = caseRepository.saveAll(List.of(new Case(
+        caseRepository.saveAll(List.of(new Case(
                 "Test title 1",
                 "Test description 1",
                 CaseStatus.IN_PROGRESS,
