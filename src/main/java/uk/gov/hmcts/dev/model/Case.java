@@ -25,5 +25,4 @@ public class Case extends AbstractBaseEntity{
     @NonNull
     private LocalDateTime due;
 
-
 }

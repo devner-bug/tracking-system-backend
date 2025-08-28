@@ -10,8 +10,8 @@ import org.springframework.stereotype.Service;
 import uk.gov.hmcts.dev.dto.CaseRequest;
 import uk.gov.hmcts.dev.dto.SearchCriteria;
 import uk.gov.hmcts.dev.dto.TaskResponseData;
-import uk.gov.hmcts.dev.exception.DuplicateException;
-import uk.gov.hmcts.dev.util.helper.ErrorHelper;
+import uk.gov.hmcts.dev.util.SecurityUtils;
+import uk.gov.hmcts.dev.util.helper.ErrorMessageHelper;
 import uk.gov.hmcts.dev.mapper.CaseMapper;
 import uk.gov.hmcts.dev.model.CaseStatus;
 import uk.gov.hmcts.dev.repository.CaseRepository;
@@ -25,7 +25,7 @@ import static java.util.Objects.nonNull;
 @RequiredArgsConstructor
 public class CaseService {
     private final CaseRepository caseRepository;
-    private final ErrorHelper errorHelper;
+    private final ErrorMessageHelper errorMessageHelper;
     private final CaseMapper mapper;
 
     @Transactional
@@ -41,11 +41,9 @@ public class CaseService {
             );
         }
 
-        if(caseRepository.existsByTitle(request.title())){
-            throw new DuplicateException("title", errorHelper.duplicateTitleError());
-        }
+        var task = mapper.toCase(request);
 
-        var response = caseRepository.save(mapper.toCase(request));
+        var response = caseRepository.save(task);
 
         return TaskResponseData.builder()
                 .task(mapper.toCaseResponse(response))
@@ -54,6 +52,7 @@ public class CaseService {
 
     public TaskResponseData getCase(SearchCriteria keywords){
         var pageable = PageRequest.of(keywords.page(), keywords.limit(), Sort.by(keywords.sortOrder(), keywords.sortBy()));
+
         var cases = caseRepository.findAll(
                 CaseSearchSpecification.withCriteria(keywords),
                 pageable);
@@ -67,7 +66,7 @@ public class CaseService {
 
     public TaskResponseData getCase(UUID id){
         var response = caseRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException(errorHelper.caseNotFoundError()));
+                .orElseThrow(() -> new EntityNotFoundException(errorMessageHelper.caseNotFoundErrorMessage()));
 
         return TaskResponseData.builder()
                 .task(mapper.toCaseResponse(response))
@@ -76,34 +75,37 @@ public class CaseService {
 
     @Transactional
     public TaskResponseData updateCase(CaseRequest request){
-        var response = caseRepository.findById(request.id())
-                .orElseThrow(() -> new EntityNotFoundException(errorHelper.caseNotFoundError()));
+        var task = caseRepository.findById(request.id())
+                .orElseThrow(() -> new EntityNotFoundException(errorMessageHelper.caseNotFoundErrorMessage()));
 
         if(nonNull(request.title())){
-            response.setTitle(request.title());
+            task.setTitle(request.title());
         }
 
         if(nonNull(request.description())){
-            response.setDescription(request.description());
+            task.setDescription(request.description());
         }
 
         if(nonNull(request.status())){
-            response.setStatus(request.status());
+            task.setStatus(request.status());
         }
 
         if(nonNull(request.due())){
-            response.setDue(request.due());
+            task.setDue(request.due());
         }
 
+        SecurityUtils.getPrincipal().ifPresent(jwtUserDetails ->
+                task.setUpdatedBy(jwtUserDetails.getId()));
+
         return TaskResponseData.builder()
-                .task(mapper.toCaseResponse(caseRepository.save(response)))
+                .task(mapper.toCaseResponse(caseRepository.save(task)))
                 .build();
     }
 
     @Transactional
     public void deleteCase(UUID id){
         var response = caseRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException(errorHelper.caseNotFoundError()));
+                .orElseThrow(() -> new EntityNotFoundException(errorMessageHelper.caseNotFoundErrorMessage()));
 
         response.setDeleted(true);
 

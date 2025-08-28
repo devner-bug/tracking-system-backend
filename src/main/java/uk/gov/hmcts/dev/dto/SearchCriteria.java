@@ -5,6 +5,7 @@ import org.springframework.data.domain.Sort;
 import uk.gov.hmcts.dev.model.CaseStatus;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Builder
 public record SearchCriteria(
@@ -16,6 +17,7 @@ public record SearchCriteria(
         int page,
         int limit,
         String sortBy,
-        Sort.Direction sortOrder
+        Sort.Direction sortOrder,
+        UUID createdBy
 ) {
 }

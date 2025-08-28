@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
+import uk.gov.hmcts.dev.dto.JwtUserDetails;
+import uk.gov.hmcts.dev.util.SecurityUtils;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -38,12 +40,24 @@ public abstract class AbstractBaseEntity {
         if(isNull(createdAt)){
             createdAt = LocalDateTime.now();
         }
+
+        if(isNull(createdBy)){
+            createdBy = SecurityUtils.getPrincipal()
+                    .map(JwtUserDetails::getId)
+                    .orElse(null);
+        }
     }
 
     @PreUpdate
     protected void onModify(){
         if(isNull(updatedAt)){
             updatedAt = LocalDateTime.now();
+        }
+
+        if(isNull(updatedBy)){
+            updatedBy = SecurityUtils.getPrincipal()
+                    .map(JwtUserDetails::getId)
+                    .orElse(null);
         }
     }
 }

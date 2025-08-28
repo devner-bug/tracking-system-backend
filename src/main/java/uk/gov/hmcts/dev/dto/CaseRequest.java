@@ -6,8 +6,9 @@ import java.time.LocalDateTime;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
-import uk.gov.hmcts.dev.dto.validation.ValidateCreateGroup;
-import uk.gov.hmcts.dev.dto.validation.ValidateUpdateGroup;
+import uk.gov.hmcts.dev.util.validation.UniqueOwnerTitle;
+import uk.gov.hmcts.dev.util.validation.group.ValidateCreateGroup;
+import uk.gov.hmcts.dev.util.validation.group.ValidateUpdateGroup;
 import uk.gov.hmcts.dev.model.CaseStatus;
 import java.util.UUID;
 
@@ -15,6 +16,7 @@ import java.util.UUID;
 public record CaseRequest(
         @NotNull(groups = {ValidateUpdateGroup.class}, message = "{id.required}")
         UUID id,
+        @UniqueOwnerTitle(message = "{error.duplicate.title}", groups = {ValidateCreateGroup.class})
         @NotEmpty(message = "{title.required}", groups = {ValidateCreateGroup.class})
         String title,
         @NotEmpty(message = "{description.required}", groups = {ValidateCreateGroup.class})

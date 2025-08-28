@@ -5,14 +5,18 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
 import uk.gov.hmcts.dev.dto.CaseRequest;
 import uk.gov.hmcts.dev.dto.CaseResponse;
+import uk.gov.hmcts.dev.dto.JwtUserDetails;
 import uk.gov.hmcts.dev.dto.SearchCriteria;
 import jakarta.persistence.EntityNotFoundException;
 import uk.gov.hmcts.dev.exception.DuplicateException;
@@ -20,7 +24,8 @@ import uk.gov.hmcts.dev.mapper.CaseMapper;
 import uk.gov.hmcts.dev.model.Case;
 import uk.gov.hmcts.dev.model.CaseStatus;
 import uk.gov.hmcts.dev.repository.CaseRepository;
-import uk.gov.hmcts.dev.util.helper.ErrorHelper;
+import uk.gov.hmcts.dev.util.SecurityUtils;
+import uk.gov.hmcts.dev.util.helper.ErrorMessageHelper;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -43,7 +48,13 @@ class CaseServiceTest {
     private CaseMapper caseMapper;
 
     @Mock
-    private ErrorHelper errorHelper;
+    private ErrorMessageHelper errorMessageHelper;
+
+    @Mock
+    private SecurityContext securityContext;
+
+    @Mock
+    private Authentication authentication;
 
     @InjectMocks
     private CaseService caseService;
@@ -75,19 +86,6 @@ class CaseServiceTest {
         assertEquals("Case 1", result.getTask().title());
         assertEquals("A new description 1", result.getTask().description());
         assertEquals(CaseStatus.OPEN, result.getTask().status());
-    }
-
-    @Test
-    void createExistingCase_shouldThrowExceptionWhenFound(){
-        var dto = new CaseRequest(null, task1.getTitle(), task1.getDescription(), task1.getStatus(), task1.getDue());
-
-//      // Given
-        when(caseRepository.existsByTitle(dto.title())).thenReturn(true);
-
-        // When/Then
-        assertThrows(DuplicateException.class, () -> {
-            caseService.createCase(dto);
-        });
     }
 
     @Test

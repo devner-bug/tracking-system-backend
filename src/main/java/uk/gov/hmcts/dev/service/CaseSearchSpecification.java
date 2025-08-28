@@ -56,6 +56,15 @@ public class CaseSearchSpecification {
         );
       }
 
+      if(nonNull(keyword.createdBy())){
+        predicates.add(
+                cb.equal(
+                        root.get(SqlColumn.CREATED_BY),
+                        keyword.createdBy()
+                )
+        );
+      }
+
       return cb.and(predicates.toArray(new Predicate[0]));
     };
   }
@@ -66,6 +75,7 @@ interface SqlColumn {
   String DESCRIPTION = "description";
   String STATUS = "status";
   String DUE = "due";
+  String CREATED_BY = "createdBy";
 }
 
 interface SqlConstant{
