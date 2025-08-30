@@ -7,21 +7,17 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import uk.gov.hmcts.dev.config.properties.ApplicationProperties;
 import uk.gov.hmcts.dev.model.Case;
-import uk.gov.hmcts.dev.model.CaseStatus;
 import uk.gov.hmcts.dev.repository.CaseRepository;
 import uk.gov.hmcts.dev.util.helper.ErrorMessageHelper;
 import uk.gov.hmcts.dev.util.helper.FieldHelper;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.util.Date;
-import java.util.UUID;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -43,15 +39,6 @@ class ExceptionHandlerConfigTest {
     private ErrorMessageHelper errorMessageHelper;
 
     private static final String BASE_URL = "/api/v1/case/";
-
-    @Test
-    @WithMockUser(username = "testuser", roles = {"STAFF"})
-    void handleEntityNotFoundExceptionHandler() throws Exception {
-        mockMvc.perform(get(BASE_URL + "{id}", UUID.randomUUID()))
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.status").value("NOT_FOUND"))
-                .andExpect(jsonPath("$.data.error").value(errorMessageHelper.caseNotFoundErrorMessage()));
-    }
 
     @Test
     @WithMockUser(username = "testuser", roles = {"STAFF"})

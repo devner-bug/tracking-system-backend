@@ -11,9 +11,9 @@ import org.hibernate.annotations.SQLRestriction;
 @Getter
 @Entity
 @Table(name = "person")
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
 @SQLRestriction("deleted <> true")
 public class User extends AbstractBaseEntity{
     @NotNull

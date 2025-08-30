@@ -89,7 +89,7 @@ public class CaseController {
     }
 
     @PutMapping("/")
-    @PreAuthorize("hasRole('STAFF')")
+    @PreAuthorize("@permissionChecker.isOwnersCase(#request.id) && hasRole('STAFF')")
     public ResponseEntity<ResponseData<Object>> updateCase(@RequestBody @Validated(ValidateUpdateGroup.class) CaseRequest request){
 
         return ResponseHandler.generateResponse(
@@ -100,7 +100,7 @@ public class CaseController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('STAFF')")
+    @PreAuthorize("@permissionChecker.isOwnersCase(#id) && hasRole('STAFF')")
     public ResponseEntity<ResponseData<Object>> deleteCase(
             @PathVariable(name = "id") UUID id){
         caseService.deleteCase(id);

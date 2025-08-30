@@ -5,7 +5,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -16,15 +15,12 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import uk.gov.hmcts.dev.dto.CaseRequest;
 import uk.gov.hmcts.dev.dto.CaseResponse;
-import uk.gov.hmcts.dev.dto.JwtUserDetails;
 import uk.gov.hmcts.dev.dto.SearchCriteria;
 import jakarta.persistence.EntityNotFoundException;
-import uk.gov.hmcts.dev.exception.DuplicateException;
 import uk.gov.hmcts.dev.mapper.CaseMapper;
 import uk.gov.hmcts.dev.model.Case;
 import uk.gov.hmcts.dev.model.CaseStatus;
 import uk.gov.hmcts.dev.repository.CaseRepository;
-import uk.gov.hmcts.dev.util.SecurityUtils;
 import uk.gov.hmcts.dev.util.helper.ErrorMessageHelper;
 
 import java.time.LocalDateTime;
@@ -74,7 +70,6 @@ class CaseServiceTest {
         var outputCase = new CaseResponse(task1.getId(), task1.getTitle(), task1.getDescription(), task1.getStatus(), task1.getDue());
 
 //      // Given
-        when(caseRepository.existsByTitle(dto.title())).thenReturn(false);
         when(caseRepository.save(any())).thenReturn(any());
         when(caseMapper.toCaseResponse(task1)).thenReturn(outputCase);
 

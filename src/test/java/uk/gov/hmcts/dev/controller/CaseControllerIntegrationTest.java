@@ -1,7 +1,7 @@
 package uk.gov.hmcts.dev.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
@@ -20,6 +20,8 @@ import uk.gov.hmcts.dev.model.CaseStatus;
 import uk.gov.hmcts.dev.repository.CaseRepository;
 import uk.gov.hmcts.dev.util.SecurityUtils;
 import uk.gov.hmcts.dev.util.helper.ErrorMessageHelper;
+import uk.gov.hmcts.dev.util.helper.FieldHelper;
+import uk.gov.hmcts.dev.util.helper.SuccessMessageHelper;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -28,16 +30,14 @@ import java.util.List;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
 @AutoConfigureMockMvc
+@Transactional
 class CaseControllerIntegrationTest {
-
-    @BeforeEach
-    void setUp() {
-    }
 
     @Autowired
     private MockMvc mockMvc;
@@ -46,19 +46,49 @@ class CaseControllerIntegrationTest {
     private ObjectMapper objectMapper;
 
     @Autowired
+    private SuccessMessageHelper successMessage;
+
+    @Autowired
     private ErrorMessageHelper errorMessage;
+
+    @Autowired
+    private FieldHelper fieldHelper;
 
     @Autowired
     private CaseRepository caseRepository;
 
+    private List<Case> savedTasks;
+    private final UUID createdByForTask1 = UUID.randomUUID();
+    private final UUID createdByForTask2 = UUID.randomUUID();
     private static final String BASE_URL = "/api/v1/case/";
+
+    @BeforeEach
+    void setUp() {
+        var task1 = Case.builder()
+                .title("Test title")
+                .description("Test description")
+                .status(CaseStatus.OPEN)
+                .due(LocalDateTime.now().plusDays(180))
+                .createdBy(createdByForTask1)
+                .build();
+        var task2 = Case.builder()
+                .title("Test title 2")
+                .description("Test description 2")
+                .status(CaseStatus.OPEN)
+                .due(LocalDateTime.now().plusDays(180))
+                .createdBy(createdByForTask2)
+                .build();
+
+        caseRepository.deleteAll();
+        savedTasks = caseRepository.saveAllAndFlush(List.of(task1, task2));
+    }
 
     @Test
     @WithMockUser(username = "testuser", roles = {"STAFF"})
     void shouldCreateTask() throws Exception {
         var request = new CaseRequest(
                 null,
-                "Test title",
+                "Test title",// Will create because the owner (createdBy == principal.id) doesn't match existing record
                 "Test description",
                 null,
                 LocalDateTime.now().plusDays(180)
@@ -78,17 +108,17 @@ class CaseControllerIntegrationTest {
     @Test
     @WithMockUser(username = "testuser", roles = {"STAFF"})
     void shouldNotCreateTaskWhenTitleExistForSameOwner() throws Exception {
+        var request = new CaseRequest(
+                null,
+                "Test title",// Will not create because the owner (createdBy == principal.id) matches existing record
+                "Test description",
+                null,
+                LocalDateTime.now().plusDays(180)
+        );
+
         try(MockedStatic<SecurityUtils> mockedSecurityUtils = Mockito.mockStatic(SecurityUtils.class)) {
-            mockedSecurityUtils.when(SecurityUtils::getPrincipal).thenReturn(Optional.of(JwtUserDetails.builder().id(UUID.randomUUID()).build()));
-
-            var request = new Case(
-                    "Test title",
-                    "Test description",
-                    CaseStatus.OPEN,
-                    LocalDateTime.now().plusDays(180)
-            );
-
-            caseRepository.save(request);
+            //Setting up the principal to match task 1 createdBy UUID
+            mockedSecurityUtils.when(SecurityUtils::getPrincipal).thenReturn(Optional.of(JwtUserDetails.builder().id(createdByForTask1).build()));
 
             mockMvc.perform(post(BASE_URL)
                             .contentType(MediaType.APPLICATION_JSON)
@@ -107,7 +137,10 @@ class CaseControllerIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(CaseRequest.builder().build()))
                 )
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.data.errors.title").value(fieldHelper.titleRequired()))
+                .andExpect(jsonPath("$.data.errors.description").value(fieldHelper.descriptionRequired()))
+                .andExpect(jsonPath("$.data.errors.due").value(fieldHelper.dueDateRequired()));
 
     }
 
@@ -133,19 +166,6 @@ class CaseControllerIntegrationTest {
     @Test
     @WithMockUser(username = "testuser", roles = {"STAFF"})
     public void shouldReturnAllCases() throws Exception {
-        caseRepository.deleteAll();
-        caseRepository.saveAll(List.of(new Case(
-                "Test title 1",
-                "Test description 1",
-                CaseStatus.IN_PROGRESS,
-                LocalDateTime.now().plusDays(180)
-        ), new Case(
-                "Test next title 1",
-                "Test next description 1",
-                CaseStatus.IN_PROGRESS,
-                LocalDateTime.now().plusDays(180)
-        )));
-
         mockMvc.perform(get(BASE_URL))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.tasks", hasSize(2)));
@@ -154,169 +174,181 @@ class CaseControllerIntegrationTest {
     @Test
     @WithMockUser(username = "testuser", roles = {"STAFF"})
     public void shouldReturnCaseWhenSearchByTitle() throws Exception {
-        var response = caseRepository.saveAll(List.of(new Case(
-                "Test search by title",
-                "Test description",
-                CaseStatus.IN_PROGRESS,
-                LocalDateTime.now().plusDays(180)
-        ), new Case(
-                "Test search by next title",
-                "Test next description",
-                CaseStatus.IN_PROGRESS,
-                LocalDateTime.now().plusDays(180)
-        )));
-
-        mockMvc.perform(get(BASE_URL).param("title", "next"))
+        mockMvc.perform(get(BASE_URL).param("title", "title 2"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.tasks", hasSize(1)))
-                .andExpect(jsonPath("$.data.tasks[0].title").value(response.get(1).getTitle()));
+                .andExpect(jsonPath("$.data.tasks[0].title").value("Test title 2"));
     }
 
     @Test
     @WithMockUser(username = "testuser", roles = {"STAFF"})
     public void shouldReturnCaseWhenSearchByCreatedBy() throws Exception {
-        var createdBy = UUID.randomUUID();
-        var task1 = Case.builder().title("Test search by created_by").description("test description").status(CaseStatus.OPEN).due(LocalDateTime.now().plusDays(180)).build();
-        task1.setCreatedBy(createdBy);
-
-        caseRepository.saveAll(List.of(task1, new Case(
-                "Test search by created_by 2",
-                "Test next description",
-                CaseStatus.IN_PROGRESS,
-                LocalDateTime.now().plusDays(180)
-        )));
-
-        mockMvc.perform(get(BASE_URL).param("createdBy", createdBy.toString()))
+        mockMvc.perform(get(BASE_URL).param("createdBy", createdByForTask1.toString()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.tasks", hasSize(1)))
-                .andExpect(jsonPath("$.data.tasks[0].title").value(task1.getTitle()));
+                .andExpect(jsonPath("$.data.tasks[0].title").value("Test title"));
     }
 
     @Test
     @WithMockUser(username = "testuser", roles = {"STAFF"})
     public void shouldReturnOneById() throws Exception {
+        try(MockedStatic<SecurityUtils> mockedSecurityUtils = Mockito.mockStatic(SecurityUtils.class)) {
+            //Setting up the principal to match task 1 createdBy UUID
+            mockedSecurityUtils.when(SecurityUtils::getPrincipal).thenReturn(Optional.of(JwtUserDetails.builder().id(savedTasks.get(0).getCreatedBy()).build()));
 
-        var response = caseRepository.save(new Case(
-                "Test title 3",
-                "Test description 3",
-                CaseStatus.IN_PROGRESS,
-                LocalDateTime.now().plusDays(180)
-        ));
+            mockMvc.perform(get(BASE_URL + "{id}", savedTasks.get(0).getId()))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.task.id").value(savedTasks.get(0).getId().toString()))
+                    .andExpect(jsonPath("$.data.task.title").value(savedTasks.get(0).getTitle()))
+                    .andExpect(jsonPath("$.data.task.status").value(savedTasks.get(0).getStatus().toString()));
+        }
+    }
 
-        mockMvc.perform(get(BASE_URL + "{id}", response.getId()))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.task.id").value(response.getId().toString()))
-                .andExpect(jsonPath("$.data.task.title").value(response.getTitle()))
-                .andExpect(jsonPath("$.data.task.status").value(response.getStatus().toString()));
+    @Test
+    @WithMockUser(username = "testuser", roles = {"STAFF"})
+    void shouldNotAllowAccessToRecordByIdIfUserIsNotOwner_denyAccess() throws Exception {
+
+        try (MockedStatic<SecurityUtils> mockedSecurityUtils = Mockito.mockStatic(SecurityUtils.class)) {
+            mockedSecurityUtils.when(SecurityUtils::getPrincipal).thenReturn(Optional.of(JwtUserDetails.builder().id(UUID.randomUUID()).build()));
+            mockMvc.perform(get(BASE_URL + "{id}", savedTasks.get(0).getId()))
+                    .andExpect(status().isForbidden())
+                    .andExpect(jsonPath("$.status").value("FORBIDDEN"))
+                    .andExpect(jsonPath("$.data.error").value(errorMessage.unauthorizedErrorMessage()));
+        }
     }
 
     @Test
     @WithMockUser(username = "testuser", roles = {"STAFF"})
     public void shouldUpdateStatus() throws Exception {
 
-        var response = caseRepository.save(new Case(
-                "Test title 4",
-                "Test description 4",
-                CaseStatus.IN_PROGRESS,
-                LocalDateTime.now().plusDays(180)
-        ));
-
         var request = CaseRequest.builder()
-                .id(response.getId())
+                .id(savedTasks.get(0).getId())
                 .status(CaseStatus.COMPLETED)
                 .build();
 
-        mockMvc.perform(
-                put(BASE_URL)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request))
-                )
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.task.id").value(response.getId().toString()))
-                .andExpect(jsonPath("$.data.task.title").value(response.getTitle()))
-                .andExpect(jsonPath("$.data.task.status").value(request.status().toString()));
+        try(MockedStatic<SecurityUtils> mockedSecurityUtils = Mockito.mockStatic(SecurityUtils.class)) {
+            //Setting up the principal to match task 1 createdBy UUID
+            mockedSecurityUtils.when(SecurityUtils::getPrincipal).thenReturn(Optional.of(JwtUserDetails.builder().id(savedTasks.get(0).getCreatedBy()).build()));
+
+            mockMvc.perform(
+                            put(BASE_URL)
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(request))
+                    )
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.task.id").value(savedTasks.get(0).getId().toString()))
+                    .andExpect(jsonPath("$.data.task.title").value(savedTasks.get(0).getTitle()))
+                    .andExpect(jsonPath("$.data.task.status").value(savedTasks.get(0).getStatus().toString()));
+        }
     }
 
     @Test
     @WithMockUser(username = "testuser", roles = {"STAFF"})
     void shouldNotUpdateTaskWithInvalidRequestId() throws Exception {
-
         // Updating a task without passing the id should be rejected.
         // The endpoint will return a bad request with a message
-        mockMvc.perform(put(BASE_URL)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(CaseRequest.builder().status(CaseStatus.COMPLETED).build()))
-                )
-                .andExpect(status().isBadRequest());
+        try(MockedStatic<SecurityUtils> mockedSecurityUtils = Mockito.mockStatic(SecurityUtils.class)) {
+            //Setting up the principal to match task 1 createdBy UUID
+            mockedSecurityUtils.when(SecurityUtils::getPrincipal).thenReturn(Optional.of(JwtUserDetails.builder().id(savedTasks.get(0).getCreatedBy()).build()));
 
+            mockMvc.perform(put(BASE_URL)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(CaseRequest.builder().status(CaseStatus.COMPLETED).build()))
+                    )
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.data.errors.id").value(fieldHelper.idRequired()));
+        }
+    }
+
+    @Test
+    @WithMockUser(username = "testuser", roles = {"STAFF"})
+    void shouldNotUpdateTaskWhenUserIsNotOwner_denyAccess() throws Exception {
+        var request = CaseRequest.builder()
+                .id(savedTasks.get(0).getId())
+                .status(CaseStatus.COMPLETED)
+                .build();
+
+        try (MockedStatic<SecurityUtils> mockedSecurityUtils = Mockito.mockStatic(SecurityUtils.class)) {
+            mockedSecurityUtils.when(SecurityUtils::getPrincipal).thenReturn(Optional.of(JwtUserDetails.builder().id(UUID.randomUUID()).build()));
+            mockMvc.perform(put(BASE_URL)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request))
+                    )
+                    .andExpect(status().isForbidden())
+                    .andExpect(jsonPath("$.status").value("FORBIDDEN"))
+                    .andExpect(jsonPath("$.data.error").value(errorMessage.unauthorizedErrorMessage()));
+        }
     }
 
     @Test
     @WithMockUser(username = "testuser", roles = {"USER"})
     public void shouldNotUpdateTaskWhenUnauthorisedPermission_denyAccess() throws Exception {
-
-        var response = caseRepository.save(new Case(
-                "Test title 4",
-                "Test description 4",
-                CaseStatus.IN_PROGRESS,
-                LocalDateTime.now().plusDays(180)
-        ));
-
         var request = CaseRequest.builder()
-                .id(response.getId())
+                .id(savedTasks.get(0).getId())
                 .status(CaseStatus.COMPLETED)
                 .build();
 
-        mockMvc.perform(put(BASE_URL)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request))
-                )
-                .andExpect(status().isForbidden())
-                .andExpect(jsonPath("$.data.error").value(errorMessage.unauthorizedErrorMessage()));
+        try(MockedStatic<SecurityUtils> mockedSecurityUtils = Mockito.mockStatic(SecurityUtils.class)) {
+            //Setting up the principal to match task 1 createdBy UUID
+            mockedSecurityUtils.when(SecurityUtils::getPrincipal).thenReturn(Optional.of(JwtUserDetails.builder().id(savedTasks.get(0).getCreatedBy()).build()));
+
+            mockMvc.perform(put(BASE_URL)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request))
+                    )
+                    .andExpect(status().isForbidden())
+                    .andExpect(jsonPath("$.data.error").value(errorMessage.unauthorizedErrorMessage()));
+        }
     }
 
     @Test
     @WithMockUser(username = "testuser", roles = {"STAFF"})
     public void shouldDeleteCase() throws Exception {
-        // Prepare
-        var response = caseRepository.saveAndFlush(new Case(
-                "Test title 5",
-                "Test description 5",
-                CaseStatus.IN_PROGRESS,
-                LocalDateTime.now().plusDays(180)
-        ));
+        try(MockedStatic<SecurityUtils> mockedSecurityUtils = Mockito.mockStatic(SecurityUtils.class)) {
+            //Setting up the principal to match task 1 createdBy UUID
+            mockedSecurityUtils.when(SecurityUtils::getPrincipal).thenReturn(Optional.of(JwtUserDetails.builder().id(savedTasks.get(0).getCreatedBy()).build()));
 
-        // Execute & Verify
-        mockMvc.perform(delete(BASE_URL + "{id}", response.getId()))
-                .andExpect(status().isOk());
+            // Execute & Verify
+            mockMvc.perform(delete(BASE_URL + "{id}", savedTasks.get(0).getId()))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.message").value(successMessage.deleteTaskSuccessMessage()));
 
-        // Verify task is actually deleted
-        assertFalse(caseRepository.existsById(response.getId()));
+            // Verify task is actually deleted
+            assertFalse(caseRepository.existsById(savedTasks.get(0).getId()));
+        }
     }
 
     @Test
     @WithMockUser(username = "testuser", roles = {"STAFF"})
-    public void shouldReturnStatusNotFoundWhenTaskDoesNotExists() throws Exception {
-        // Prepare
-        var taskId = UUID.randomUUID();
+    public void shouldNotDeleteWhenUserIsNotOwner_denyAccess() throws Exception {
+        try(MockedStatic<SecurityUtils> mockedSecurityUtils = Mockito.mockStatic(SecurityUtils.class)) {
+            //Setting up the principal to not match any tasks createdBy UUID
+            mockedSecurityUtils.when(SecurityUtils::getPrincipal).thenReturn(Optional.of(JwtUserDetails.builder().id(UUID.randomUUID()).build()));
 
-        // Execute & Verify
-        mockMvc.perform(delete(BASE_URL + "{id}", taskId))
-                .andExpect(status().isNotFound());
+            // Execute & Verify
+            mockMvc.perform(delete(BASE_URL + "{id}", savedTasks.get(0).getId()))
+                    .andExpect(status().isForbidden())
+                    .andExpect(jsonPath("$.data.error").value(errorMessage.unauthorizedErrorMessage()));
 
-        // Verify task is actually deleted
-        assertFalse(caseRepository.existsById(taskId));
+            // Verify task is not deleted deleted
+            assertTrue(caseRepository.existsById(savedTasks.get(0).getId()));
+        }
     }
 
     @Test
     @WithMockUser(username = "testuser", roles = {"USER"})
     public void shouldNotDeleteTaskWhenUnauthorisedPermission_denyAccess() throws Exception {
         // Prepare
-        var taskId = UUID.randomUUID();
+        var taskId = savedTasks.get(0).getId();
 
-        // Execute & Verify
-        mockMvc.perform(delete(BASE_URL + "{id}", taskId))
-                .andExpect(status().isForbidden())
-                .andExpect(jsonPath("$.data.error").value(errorMessage.unauthorizedErrorMessage()));
+        try(MockedStatic<SecurityUtils> mockedSecurityUtils = Mockito.mockStatic(SecurityUtils.class)) {
+            //Setting up the principal to match task 1 createdBy UUID
+            mockedSecurityUtils.when(SecurityUtils::getPrincipal).thenReturn(Optional.of(JwtUserDetails.builder().id(savedTasks.get(0).getCreatedBy()).build()));
+
+            // Execute & Verify
+            mockMvc.perform(delete(BASE_URL + "{id}", taskId))
+                    .andExpect(status().isForbidden())
+                    .andExpect(jsonPath("$.data.error").value(errorMessage.unauthorizedErrorMessage()));
+        }
     }
 }
