@@ -1,6 +1,7 @@
 TRUNCATE TABLE person;
 insert into person (id,username,password,role) values ('c40b683b-ac7b-5d6b-b0eb-549cb20169b9','staff','$2a$10$iL/s2FtkwDJLvvw9btPvwe33JFw7H/pjWL4.f0ylPalUE02jiCE36','ROLE_STAFF');
 insert into person (id,username,password,role) values ('424e00a0-2dcf-4e0d-b69e-827382effafc','member','$2a$10$iL/s2FtkwDJLvvw9btPvwe33JFw7H/pjWL4.f0ylPalUE02jiCE36','ROLE_STAFF');
+insert into person (id,username,password,role) values (RANDOM_UUID(),'user','$2a$10$iL/s2FtkwDJLvvw9btPvwe33JFw7H/pjWL4.f0ylPalUE02jiCE36','ROLE_USER');
 TRUNCATE TABLE task;
 INSERT INTO task (id, title, description, status, due, created_by)
 VALUES

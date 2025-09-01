@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class SuccessMessageHelper {
+public final class SuccessMessageHelper {
     private final MessageUtil messageUtil;
 
     public String loginSuccessMessage(){

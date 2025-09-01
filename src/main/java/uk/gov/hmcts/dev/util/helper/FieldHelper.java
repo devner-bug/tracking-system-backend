@@ -5,7 +5,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class FieldHelper {
+public final class FieldHelper {
     private final MessageUtil messageUtil;
 
     public String idRequired(){
