@@ -66,7 +66,7 @@ JDBC URL: `jdbc:h2:mem:caseworkerTestDB`
 | member | pass123 | ROLE_STAFF |
 | user | pass123 | ROLE_USER |
 
-Login Endpoint: POST /api/v2/auth/login
+Login Endpoint: POST /api/v2/auth/
 
 Request:
 ```payload
@@ -99,10 +99,10 @@ Swagger UI:
 [`http://localhost:8081/swagger-ui/index.html`](http://localhost:8081/swagger-ui/index.html)
 
 | Method | Endpoint | Description                     |
-|--------|-----------------------|---------------------------------|
-| POST   | `/api/v2/auth/login` | Login and Recieve JWT           |
-| POST   | `/api/v2/case`        | Create new case (auth required) |
-| GET    | `/api/v2/case`       | List all cases  (auth required) |
+|--------|------------------|---------------------------------|
+| POST   | `/api/v2/auth/` | Login and Recieve JWT           |
+| POST   | `/api/v2/case`   | Create new case (auth required) |
+| GET    | `/api/v2/case`  | List all cases  (auth required) |
 | GET    | `/api/v2/case/{id}` | Get case by ID (auth required)  |
 | PUT    | `/api/v2/case/{id}` | Update case (auth required)     |
 | DELETE | `/api/v2/case/{id}` | Delete case (auth required)    |

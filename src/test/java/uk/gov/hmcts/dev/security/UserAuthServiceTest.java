@@ -1,6 +1,5 @@
 package uk.gov.hmcts.dev.security;
 
-import io.jsonwebtoken.lang.Collections;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

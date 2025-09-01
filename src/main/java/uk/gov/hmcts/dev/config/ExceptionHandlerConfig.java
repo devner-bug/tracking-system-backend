@@ -12,13 +12,10 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import uk.gov.hmcts.dev.dto.ResponseData;
 import uk.gov.hmcts.dev.dto.ResponseError;
 import uk.gov.hmcts.dev.dto.ResponseHandler;
-import uk.gov.hmcts.dev.exception.DuplicateException;
 import uk.gov.hmcts.dev.util.helper.ErrorMessageHelper;
 
 import java.util.HashMap;
