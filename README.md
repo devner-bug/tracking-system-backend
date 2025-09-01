@@ -1,26 +1,30 @@
- # Tracking System
+ # Tracking System 2.0 - Authenticated Task Management
 
-A task management app built for the **HMCTS DTS Developer Challenge**. Helps caseworkers manage daily tasks with a simple interface and reliable backend.
+An enhanced version of the HMCTS DTS Developer Challenge app. This release introduces JWT-based authentication, user-specific task views, and demo data for testing.
 
 ---
 
 ## Table of Contents
 
-- [Backend Features](#backend-features)
+- [New in v2.0](#new-in-v20)
 - [Setup](#setup)
+- [Authentication Flow](#authentication-flow)
 - [API Documentation](#api-documentation)
 - [Database Configuration](#database-configuration)
 - [Testing](#testing)
 - [Advanced Options](#advanced-options)
+- [Localisation](#localisation)
 
 ---
 
-## Backend Features
+## New in v2.0
 
-- REST API for case management (CRUD operations)
-- H2 in-memory database (auto-creates tables via JPA)
-- Data validation and error handling
-- Unit/Integration tests (85% coverage)
+- JWT authentication for secure access
+- User-based task filtering
+- Updated unit tests for auth flows
+- data.sql for demo users and tasks
+- Role-based access control
+- Localisation Support: Language files added for English [UK, US], French and Spanish
 
 ---
 
@@ -41,13 +45,51 @@ mvn spring-boot:run
 
 - API:
 
-[`http://localhost:8081/api/v1/case`](http://localhost:8081/api/v1/case)
+[`http://localhost:8081/api/v2/case`](http://localhost:8081/api/v2/case)
+
+- Auth: 
+[`http://localhost:8081/api/v2/auth`](http://localhost:8081/api/v2/auth)
+
 - H2 Console:
 
 [`http://localhost:8081/h2-console`](http://localhost:8081/h2-console)  
 JDBC URL: `jdbc:h2:mem:caseworkerTestDB`  
 *(Credentials in `application.properties`)*
 
+
+---
+
+## Authentication Flow
+| Username | Password | Role |
+|----------|----------|------|
+| staff | pass123 | ROLE_STAFF |
+| member | pass123 | ROLE_STAFF |
+| user | pass123 | ROLE_USER |
+
+Login Endpoint: POST /api/v2/auth/login
+
+Request:
+```payload
+{
+  "username": "staff",
+  "password": "pass123"
+}
+```
+Response:
+```payload
+{
+    "message": "User logged in successfully",
+    "status": "OK",
+    "data": {
+        "accessToken": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJyb2xlIjpbIlJPTEVfU1RBRkYiXSwic3ViIjoiYzQwYjY4M2ItYWM3Yi01ZDZiLWIwZWItNTQ5Y2IyMDE2OWI5IiwiaWF0IjoxNzU2NzEzODc5LCJleHAiOjE3NTY3MTY4Nzl9.6G_EtkNzklwxCOdt5tW5Iz5Upc1PcfjK8VZPNesou0s",
+        "tokenType": "Bearer "
+    }
+}
+```
+Use this token in the Authorization header for all protected endpoints:
+```header
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJyb2xlIjpbIlJPTEVfU1RBRkYiXSwic3ViIjoiYzQwYjY4M2ItYWM3Yi01ZDZiLWIwZWItNTQ5Y2IyMDE2OWI5IiwiaWF0IjoxNzU2NzEzODc5LCJleHAiOjE3NTY3MTY4Nzl9.6G_EtkNzklwxCOdt5tW5Iz5Upc1PcfjK8VZPNesou0s
+```
 ---
 
 ## API Documentation
@@ -56,13 +98,15 @@ Swagger UI:
 
 [`http://localhost:8081/swagger-ui/index.html`](http://localhost:8081/swagger-ui/index.html)
 
-| Method | Endpoint | Description |
-|--------|-----------------------|-------------------|
-| POST   | `/api/v1/case`        | Create new case |
-| GET    | `/api/v1/case`       | List all cases |
-| GET    | `/api/v1/case/{id}` | Get case by ID  |
-| PUT    | `/api/v1/case/{id}` | Update case      |
-| DELETE | `/api/v1/case/{id}` | Delete case       |
+| Method | Endpoint | Description                     |
+|--------|-----------------------|---------------------------------|
+| POST   | `/api/v2/auth/login` | Login and Recieve JWT           |
+| POST   | `/api/v2/case`        | Create new case (auth required) |
+| GET    | `/api/v2/case`       | List all cases  (auth required) |
+| GET    | `/api/v2/case/{id}` | Get case by ID (auth required)  |
+| PUT    | `/api/v2/case/{id}` | Update case (auth required)     |
+| DELETE | `/api/v2/case/{id}` | Delete case (auth required)    |
+ 
 
 ---
 
@@ -74,6 +118,10 @@ Run all tests:
 mvn test
 ```
 
+Includes:
+1. Auth controller test
+2. Token validation
+3. Task access per user
 ---
 
 ## ️Database Configuration
@@ -130,4 +178,25 @@ Add PostgreSQL dependency to `pom.xml` file:
   <artifactId>postgresql</artifactId>
 </dependency>
 ```
+---
+
+## Localisation
+
+The app supports dynamic language switching via message bundles. The default language is English (GB). 
+The following languages are supported English, French and Spanish
+
+Usage
+```http
+GET /api/v2/case?locale=en-gb
+```
+
+Supported Locale Values:
+
+| Locale | Language | Region         |
+|--------|----------|----------------|
+| en-gb  | English  | United Kingdom |
+| en-us  | English  | United State   |
+| fr-fr  | French   | France         |
+| es-es  | Spanish  | Spain          |
+
 ---

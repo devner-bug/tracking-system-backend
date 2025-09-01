@@ -12,7 +12,7 @@ import uk.gov.hmcts.dev.dto.ResponseHandler;
 import uk.gov.hmcts.dev.util.helper.SuccessMessageHelper;
 
 @RestController
-@RequestMapping("/api/v1/auth")
+@RequestMapping("/api/v2/auth")
 @RequiredArgsConstructor
 class UserAuthController {
     private final UserAuthService authService;

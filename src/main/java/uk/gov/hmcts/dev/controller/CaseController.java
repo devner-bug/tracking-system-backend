@@ -20,9 +20,8 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/v1/case")
+@RequestMapping("/api/v2/case")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "http://localhost:5173")
 public class CaseController {
     private final CaseService caseService;
     private final SuccessMessageHelper successMessage;

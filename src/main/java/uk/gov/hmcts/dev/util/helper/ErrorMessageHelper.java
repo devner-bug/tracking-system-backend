@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class ErrorMessageHelper {
+public final class ErrorMessageHelper {
     private final MessageUtil messageUtil;
 
     public String duplicateTitleErrorMessage(){

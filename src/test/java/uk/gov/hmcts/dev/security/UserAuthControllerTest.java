@@ -40,7 +40,7 @@ class UserAuthControllerTest {
     @Autowired
     private ErrorMessageHelper errorMessage;
 
-    private static final String BASE_URL = "/api/v1/auth/";
+    private static final String BASE_URL = "/api/v2/auth/";
 
     @BeforeEach
     void setupUser() throws JsonProcessingException {

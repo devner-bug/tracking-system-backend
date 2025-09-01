@@ -60,7 +60,7 @@ class CaseControllerIntegrationTest {
     private List<Case> savedTasks;
     private final UUID createdByForTask1 = UUID.randomUUID();
     private final UUID createdByForTask2 = UUID.randomUUID();
-    private static final String BASE_URL = "/api/v1/case/";
+    private static final String BASE_URL = "/api/v2/case/";
 
     @BeforeEach
     void setUp() {
