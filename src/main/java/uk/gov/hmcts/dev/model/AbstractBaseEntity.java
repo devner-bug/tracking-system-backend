@@ -1,11 +1,10 @@
 package uk.gov.hmcts.dev.model;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
+import uk.gov.hmcts.dev.dto.JwtUserDetails;
+import uk.gov.hmcts.dev.util.SecurityUtils;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -14,10 +13,10 @@ import static java.util.Objects.isNull;
 
 @Getter
 @Setter
+@SuperBuilder
+@MappedSuperclass
 @AllArgsConstructor
 @NoArgsConstructor
-@MappedSuperclass
-@SuperBuilder
 public abstract class AbstractBaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -38,12 +37,24 @@ public abstract class AbstractBaseEntity {
         if(isNull(createdAt)){
             createdAt = LocalDateTime.now();
         }
+
+        if(isNull(createdBy)){
+            createdBy = SecurityUtils.getPrincipal()
+                    .map(JwtUserDetails::getId)
+                    .orElse(null);
+        }
     }
 
     @PreUpdate
     protected void onModify(){
         if(isNull(updatedAt)){
             updatedAt = LocalDateTime.now();
+        }
+
+        if(isNull(updatedBy)){
+            updatedBy = SecurityUtils.getPrincipal()
+                    .map(JwtUserDetails::getId)
+                    .orElse(null);
         }
     }
 }

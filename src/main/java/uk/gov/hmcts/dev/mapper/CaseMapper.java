@@ -25,6 +25,7 @@ public class CaseMapper {
     }
 
     public Case toCase(CaseRequest request){
+
         return Case.builder()
                 .title(request.title())
                 .description(request.description())

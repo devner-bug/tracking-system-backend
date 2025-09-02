@@ -2,6 +2,7 @@ package uk.gov.hmcts.dev.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.SQLRestriction;
 
 import java.time.LocalDateTime;
@@ -10,9 +11,9 @@ import java.time.LocalDateTime;
 @Getter
 @Entity
 @Table(name = "task")
+@SuperBuilder
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
 @SQLRestriction("deleted <> true")
 public class Case extends AbstractBaseEntity{
     @NonNull
@@ -24,6 +25,5 @@ public class Case extends AbstractBaseEntity{
     private CaseStatus status;
     @NonNull
     private LocalDateTime due;
-
 
 }
