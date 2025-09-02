@@ -5,13 +5,14 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.SQLRestriction;
 
 @Setter
 @Getter
 @Entity
 @Table(name = "person")
-@Builder
+@SuperBuilder
 @AllArgsConstructor
 @NoArgsConstructor
 @SQLRestriction("deleted <> true")
