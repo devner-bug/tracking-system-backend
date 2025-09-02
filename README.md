@@ -81,7 +81,7 @@ Response:
     "message": "User logged in successfully",
     "status": "OK",
     "data": {
-        "accessToken": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJyb2xlIjpbIlJPTEVfU1RBRkYiXSwic3ViIjoiYzQwYjY4M2ItYWM3Yi01ZDZiLWIwZWItNTQ5Y2IyMDE2OWI5IiwiaWF0IjoxNzU2NzEzODc5LCJleHAiOjE3NTY3MTY4Nzl9.6G_EtkNzklwxCOdt5tW5Iz5Upc1PcfjK8VZPNesou0s",
+        "accessToken": <token>,
         "tokenType": "Bearer "
     }
 }
